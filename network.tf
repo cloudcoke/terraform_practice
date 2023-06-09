@@ -1,7 +1,7 @@
 data "aws_ec2_instance_type_offerings" "available" {
   filter {
     name   = "instance-type"
-    values = ["t2.micro"]
+    values = [var.my_ec2_type]
   }
 
   location_type = "availability-zone"
@@ -70,4 +70,43 @@ resource "aws_route_table_association" "public_route_table_association" {
 resource "aws_eip" "front_eip" {
   instance = aws_instance.front.id
   domain   = "vpc"
+}
+
+resource "aws_eip" "back_eip" {
+  instance = aws_instance.back.id
+  domain   = "vpc"
+}
+
+# resource "aws_route53_zone" "cloudcoke_site" {
+#   name = var.default_domain
+# }
+
+data "aws_route53_zone" "my_site" {
+  name = "${var.default_domain}."
+}
+
+resource "aws_route53_record" "my_default_record" {
+  zone_id = data.aws_route53_zone.my_site.zone_id
+  name    = var.default_domain
+  type    = "A"
+  ttl     = 300
+  records = [aws_eip.front_eip.public_ip]
+}
+
+resource "aws_route53_record" "my_www_record" {
+  depends_on = [aws_route53_record.my_default_record]
+
+  zone_id = data.aws_route53_zone.my_site.zone_id
+  name    = "www.${var.default_domain}"
+  type    = "CNAME"
+  ttl     = 5
+  records = [var.default_domain]
+}
+
+resource "aws_route53_record" "my_api_record" {
+  zone_id = data.aws_route53_zone.my_site.zone_id
+  name    = "api.${var.default_domain}"
+  type    = "A"
+  ttl     = 300
+  records = [aws_eip.back_eip.public_ip]
 }

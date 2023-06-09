@@ -1,5 +1,5 @@
 variable "project" {
-  description = "project name"
+  description = "project_name"
   default     = "test"
 }
 
@@ -9,7 +9,7 @@ variable "region" {
 }
 
 variable "vpc_cidr" {
-  description = "vpc cidr"
+  description = "vpc_cidr"
   default     = "10.10.10.0/24"
 }
 
@@ -31,4 +31,19 @@ variable "private_subnet" {
     "10.10.10.192/27",
     "10.10.10.224/27"
   ]
+}
+
+variable "default_domain" {
+  description = "default_domain"
+  default     = "cloudcoke.site"
+}
+
+variable "my_ec2_type" {
+  description = "my_ec2_type"
+  default     = "t2.micro"
+}
+
+variable "my_key_pair" {
+  description = "my_key_pair"
+  default     = "my-ec2-keypair"
 }
