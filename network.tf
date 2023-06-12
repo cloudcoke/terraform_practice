@@ -104,57 +104,7 @@ resource "aws_route_table_association" "private_route_table_association" {
   route_table_id = aws_route_table.private_route_table.id
 }
 
-# front Elastic IP 지정
-resource "aws_eip" "front_eip" {
-  instance = aws_instance.front.id
-  domain   = "vpc"
-}
-
-# back Elastic IP 지정
-resource "aws_eip" "back_eip" {
-  instance = aws_instance.back.id
-  domain   = "vpc"
-}
-
 # nat gateWay Elastic IP 지정
 resource "aws_eip" "nat_gateway_eip" {
   domain = "vpc"
-}
-
-# resource "aws_route53_zone" "cloudcoke_site" {
-#   name = var.default_domain
-# }
-
-# 도메인에 해당하는 zone 정보 가져오기
-data "aws_route53_zone" "my_site" {
-  name = "${var.default_domain}."
-}
-
-# A 레코드 지정
-resource "aws_route53_record" "my_default_record" {
-  zone_id = data.aws_route53_zone.my_site.zone_id
-  name    = var.default_domain
-  type    = "A"
-  ttl     = 300
-  records = [aws_eip.front_eip.public_ip]
-}
-
-# CNAME 지정
-resource "aws_route53_record" "my_www_record" {
-  depends_on = [aws_route53_record.my_default_record]
-
-  zone_id = data.aws_route53_zone.my_site.zone_id
-  name    = "www.${var.default_domain}"
-  type    = "CNAME"
-  ttl     = 5
-  records = [var.default_domain]
-}
-
-# A레코드 지정
-resource "aws_route53_record" "my_api_record" {
-  zone_id = data.aws_route53_zone.my_site.zone_id
-  name    = "api.${var.default_domain}"
-  type    = "A"
-  ttl     = 300
-  records = [aws_eip.back_eip.public_ip]
 }
