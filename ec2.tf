@@ -9,89 +9,102 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-# front 인스턴스 생성
-resource "aws_instance" "front" {
+# front main 인스턴스 생성
+resource "aws_instance" "front_main" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.my_ec2_type
   subnet_id                   = aws_subnet.public_subnet["10.10.10.0/27"].id
   key_name                    = var.my_key_pair
-  vpc_security_group_ids      = [aws_security_group.default_security_group.id]
+  vpc_security_group_ids      = [aws_security_group.ec2.id]
   associate_public_ip_address = true
 
   tags = {
-    Name = "front-server"
+    Name = "front_main"
   }
 
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = file("${path.module}/${var.my_key_pair}.pem")
-    host        = self.public_ip
-  }
-
-  provisioner "file" {
-    source      = "scripts/front.sh"
-    destination = "/tmp/front.sh"
-  }
+  user_data = file("${path.module}/scripts/front.sh")
 }
 
-# front 서버 설정
-# resource "null_resource" "front_https" {
-#   depends_on = [aws_route53_record.my_www_record]
+resource "aws_instance" "front_backup" {
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = var.my_ec2_type
+  subnet_id                   = aws_subnet.public_subnet["10.10.10.32/27"].id
+  key_name                    = var.my_key_pair
+  vpc_security_group_ids      = [aws_security_group.ec2.id]
+  associate_public_ip_address = true
 
-#   connection {
-#     type        = "ssh"
-#     user        = "ubuntu"
-#     private_key = file("${path.module}/${var.my_key_pair}.pem")
-#     host        = aws_eip.front_eip.public_ip
-#   }
+  tags = {
+    Name = "front_backup"
+  }
 
-#   provisioner "remote-exec" {
-#     inline = [
-#       "sudo bash /tmp/front.sh"
-#     ]
-#   }
-# }
+  user_data = file("${path.module}/scripts/front.sh")
+}
 
-# back 인스턴스 생성
-resource "aws_instance" "back" {
+resource "aws_instance" "back_main" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.my_ec2_type
   subnet_id                   = aws_subnet.public_subnet["10.10.10.64/27"].id
   key_name                    = var.my_key_pair
-  vpc_security_group_ids      = [aws_security_group.default_security_group.id]
+  vpc_security_group_ids      = [aws_security_group.ec2.id]
   associate_public_ip_address = true
 
   tags = {
-    Name = "back-server"
+    Name = "back_main"
   }
 
+}
+
+resource "aws_instance" "back_backup" {
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = var.my_ec2_type
+  subnet_id                   = aws_subnet.public_subnet["10.10.10.96/27"].id
+  key_name                    = var.my_key_pair
+  vpc_security_group_ids      = [aws_security_group.ec2.id]
+  associate_public_ip_address = true
+
+  tags = {
+    Name = "back_backup"
+  }
+
+}
+
+resource "null_resource" "back_main" {
   connection {
     type        = "ssh"
     user        = "ubuntu"
     private_key = file("${path.module}/${var.my_key_pair}.pem")
-    host        = self.public_ip
+    host        = aws_instance.back_main.public_ip
   }
 
   provisioner "file" {
     source      = "scripts/back.sh"
     destination = "/tmp/back.sh"
   }
+
+  provisioner "remote-exec" {
+    inline = [
+      "export HOSTNAME=${aws_instance.back_main.public_dns}",
+      "sudo bash /tmp/back.sh",
+    ]
+  }
 }
 
-# back 서버 설정
-resource "null_resource" "back_https" {
-  depends_on = [aws_route53_record.my_api_record]
-
+resource "null_resource" "back_backup" {
   connection {
     type        = "ssh"
     user        = "ubuntu"
     private_key = file("${path.module}/${var.my_key_pair}.pem")
-    host        = aws_eip.back_eip.public_ip
+    host        = aws_instance.back_backup.public_ip
+  }
+
+  provisioner "file" {
+    source      = "scripts/back.sh"
+    destination = "/tmp/back.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
+      "export HOSTNAME=${aws_instance.back_backup.public_dns}",
       "sudo bash /tmp/back.sh"
     ]
   }

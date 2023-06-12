@@ -47,3 +47,8 @@ variable "my_key_pair" {
   description = "my_key_pair"
   default     = "my-ec2-keypair"
 }
+
+variable "my_acm" {
+  description = "my_acm"
+  default     = "arn:aws:acm:ap-northeast-2:620872919682:certificate/269e407d-dfb7-4cba-ae50-8bf604490418"
+}
