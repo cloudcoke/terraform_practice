@@ -28,41 +28,30 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
-# NAT Gateway 생성
-resource "aws_nat_gateway" "nat_gw" {
-  allocation_id = aws_eip.nat_gateway_eip.id
-  subnet_id     = aws_subnet.public_subnet["10.10.10.0/27"].id
-
-  tags = {
-    Name = "nat_gw"
-  }
-}
-
 # Subnet : VPC 내에서 나눠진 독립적인 네트워크 구역
 # Public Subnet 생성
 resource "aws_subnet" "public_subnet" {
-  for_each          = toset(var.public_subnet)
+  count             = length(var.public_subnet)
   vpc_id            = aws_vpc.my_vpc.id
-  cidr_block        = each.value
-  availability_zone = index(var.public_subnet, each.value) % 2 == 0 ? data.aws_ec2_instance_type_offerings.available.locations[0] : data.aws_ec2_instance_type_offerings.available.locations[1]
+  cidr_block        = var.public_subnet[count.index]
+  availability_zone = count.index % 2 == 0 ? data.aws_ec2_instance_type_offerings.available.locations[0] : data.aws_ec2_instance_type_offerings.available.locations[1]
 
   tags = {
-    Name = "${var.project}-public_subnet-${index(var.public_subnet, each.value)}"
+    Name = "${var.project}-public_subnet-${count.index}"
   }
 }
 
 # Private Subnet 생성
 resource "aws_subnet" "private_subnet" {
-  for_each          = toset(var.private_subnet)
+  count             = length(var.private_subnet)
   vpc_id            = aws_vpc.my_vpc.id
-  cidr_block        = each.value
-  availability_zone = index(var.private_subnet, each.value) % 2 == 0 ? data.aws_ec2_instance_type_offerings.available.locations[0] : data.aws_ec2_instance_type_offerings.available.locations[1]
+  cidr_block        = var.private_subnet[count.index]
+  availability_zone = count.index % 2 == 0 ? data.aws_ec2_instance_type_offerings.available.locations[0] : data.aws_ec2_instance_type_offerings.available.locations[1]
 
   tags = {
-    Name = "${var.project}-private_subnet-${index(var.private_subnet, each.value)}"
+    Name = "${var.project}-private_subnet-${count.index}"
   }
 }
-
 # 라우팅 테이블 생성
 resource "aws_route_table" "public_route_table" {
   vpc_id = aws_vpc.my_vpc.id
@@ -81,8 +70,8 @@ resource "aws_route_table" "private_route_table" {
   vpc_id = aws_vpc.my_vpc.id
 
   route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.nat_gw.id
+    cidr_block           = "0.0.0.0/0"
+    network_interface_id = aws_instance.nat_gateway.primary_network_interface_id
   }
 
   tags = {
@@ -92,19 +81,21 @@ resource "aws_route_table" "private_route_table" {
 
 # Public Subnet에 라우팅 테이블 지정
 resource "aws_route_table_association" "public_route_table_association" {
-  for_each       = toset(var.public_subnet)
-  subnet_id      = aws_subnet.public_subnet[each.value].id
+  count          = length(var.public_subnet)
+  subnet_id      = aws_subnet.public_subnet[count.index].id
   route_table_id = aws_route_table.public_route_table.id
 }
 
-# Private Subnet에 라이팅 테이블 지정
+# Private Subnet에 라우팅 테이블 지정
 resource "aws_route_table_association" "private_route_table_association" {
-  for_each       = toset(var.private_subnet)
-  subnet_id      = aws_subnet.private_subnet[each.value].id
+  count          = length(var.private_subnet)
+  subnet_id      = aws_subnet.private_subnet[count.index].id
   route_table_id = aws_route_table.private_route_table.id
 }
 
+
 # nat gateWay Elastic IP 지정
 resource "aws_eip" "nat_gateway_eip" {
-  domain = "vpc"
+  instance = aws_instance.nat_gateway.id
+  domain   = "vpc"
 }

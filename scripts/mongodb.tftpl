@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-# 기본값
-USER_NAME="cloudcoke"
-PASSWD="1"
-
 # 패키지 설치
 sudo apt-get install gnupg
 curl -fsSL https://pgp.mongodb.com/server-6.0.asc | \
@@ -24,8 +20,8 @@ sudo systemctl start mongod && sudo systemctl enable mongod
 cat > /home/ubuntu/create_user.js <<USERS
 use admin
 db.createUser({
-        user: "cloudcoke",
-        pwd: "1",
+        user: "${user_name}",
+        pwd: "${passwd}",
         roles: [{ role: "root", db: "admin" }]
 })
 USERS

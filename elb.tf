@@ -1,7 +1,7 @@
 # 로드 밸런서
 resource "aws_lb" "external" {
   name     = "${var.project}-lb-ext"
-  subnets  = [aws_subnet.public_subnet["10.10.10.0/27"].id, aws_subnet.public_subnet["10.10.10.32/27"].id]
+  subnets  = [aws_subnet.public_subnet[0].id, aws_subnet.public_subnet[1].id]
   internal = false
 
   security_groups = [
@@ -17,7 +17,7 @@ resource "aws_lb" "external" {
 
 resource "aws_lb" "my_api" {
   name     = "${var.project}-lb-api"
-  subnets  = [aws_subnet.public_subnet["10.10.10.64/27"].id, aws_subnet.public_subnet["10.10.10.96/27"].id]
+  subnets  = [aws_subnet.public_subnet[2].id, aws_subnet.public_subnet[3].id]
   internal = false
 
   security_groups = [
@@ -132,26 +132,16 @@ resource "aws_lb_listener" "api_80" {
 }
 
 # 대상 그룹과 인스턴스 연결
-resource "aws_lb_target_group_attachment" "front_main" {
+resource "aws_lb_target_group_attachment" "front" {
+  count            = length(var.public_subnet) / 2
   target_group_arn = aws_lb_target_group.external.arn
-  target_id        = aws_instance.front_main.id
+  target_id        = aws_instance.front[count.index].id
   port             = 80
 }
 
-resource "aws_lb_target_group_attachment" "front_backup" {
-  target_group_arn = aws_lb_target_group.external.arn
-  target_id        = aws_instance.front_backup.id
-  port             = 80
-}
-
-resource "aws_lb_target_group_attachment" "back_main" {
+resource "aws_lb_target_group_attachment" "back" {
+  count            = length(var.public_subnet) / 2
   target_group_arn = aws_lb_target_group.my_api.arn
-  target_id        = aws_instance.back_main.id
-  port             = 80
-}
-
-resource "aws_lb_target_group_attachment" "back_backup" {
-  target_group_arn = aws_lb_target_group.my_api.arn
-  target_id        = aws_instance.back_backup.id
+  target_id        = aws_instance.back[count.index].id
   port             = 80
 }
