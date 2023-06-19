@@ -36,8 +36,8 @@ resource "aws_route53_record" "my_api_record" {
   type    = "A"
 
   alias {
-    name                   = aws_lb.my_api.dns_name
-    zone_id                = aws_lb.my_api.zone_id
+    name                   = aws_lb.api.dns_name
+    zone_id                = aws_lb.api.zone_id
     evaluate_target_health = true
   }
 }
