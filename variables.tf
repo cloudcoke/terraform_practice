@@ -33,11 +33,6 @@ variable "private_subnet" {
   ]
 }
 
-variable "default_domain" {
-  description = "default_domain"
-  default     = "cloudcoke.site"
-}
-
 variable "my_ec2_type" {
   description = "my_ec2_type"
   default     = "t2.micro"
@@ -48,7 +43,10 @@ variable "my_key_pair" {
   default     = "my-ec2-keypair"
 }
 
+variable "default_domain" {
+  description = "default_domain"
+}
+
 variable "my_acm" {
   description = "my_acm"
-  default     = "arn:aws:acm:ap-northeast-2:620872919682:certificate/269e407d-dfb7-4cba-ae50-8bf604490418"
 }
