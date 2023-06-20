@@ -137,6 +137,6 @@ resource "aws_security_group" "mongo_db_sg" {
   }
 
   tags = {
-    Name = "mongo-db-sg"
+    Name = "${var.project}-mongo-db-sg"
   }
 }

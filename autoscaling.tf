@@ -1,5 +1,5 @@
 resource "aws_launch_template" "front" {
-  name = "front-template"
+  name = "${var.project}-front-template"
 
   image_id      = data.aws_ami.ubuntu.id
   instance_type = var.my_ec2_type
@@ -18,7 +18,7 @@ resource "aws_launch_template" "front" {
 }
 
 resource "aws_launch_template" "back" {
-  name = "back-template"
+  name = "${var.project}-back-template"
 
   image_id      = data.aws_ami.ubuntu.id
   instance_type = var.my_ec2_type
@@ -37,7 +37,7 @@ resource "aws_launch_template" "back" {
 }
 
 resource "aws_autoscaling_group" "front" {
-  name             = "front-asg"
+  name             = "${var.project}-front-asg"
   min_size         = 1
   max_size         = 2
   desired_capacity = 2
@@ -51,13 +51,19 @@ resource "aws_autoscaling_group" "front" {
 
   tag {
     key                 = "Name"
-    value               = "front-asg"
+    value               = "${var.project}-front-asg"
     propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "Project"
+    value               = "back-asg"
+    propagate_at_launch = false
   }
 }
 
 resource "aws_autoscaling_group" "back" {
-  name             = "back-asg"
+  name             = "${var.project}-back-asg"
   min_size         = 1
   max_size         = 2
   desired_capacity = 2
@@ -71,8 +77,14 @@ resource "aws_autoscaling_group" "back" {
 
   tag {
     key                 = "Name"
-    value               = "back-asg"
+    value               = "${var.project}-back-asg"
     propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "Project"
+    value               = "back-asg"
+    propagate_at_launch = false
   }
 }
 

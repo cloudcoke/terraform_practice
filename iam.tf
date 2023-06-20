@@ -1,5 +1,5 @@
 resource "aws_iam_role" "code_deploy_role" {
-  name = "code_deploy_role"
+  name = "${var.project}-code-deploy-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -17,7 +17,7 @@ resource "aws_iam_role" "code_deploy_role" {
 }
 
 resource "aws_iam_role_policy" "code_deploy_role" {
-  name = "code_deploy_role_policy"
+  name = "${var.project}-code-deploy-role-policy"
   role = aws_iam_role.code_deploy_role.id
 
   policy = jsonencode({
@@ -75,7 +75,7 @@ resource "aws_iam_role_policy" "code_deploy_role" {
 }
 
 resource "aws_iam_role" "ec2_code_deploy" {
-  name = "ec2_code_deploy_role"
+  name = "${var.project}-ec2-code-deploy-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -92,7 +92,7 @@ resource "aws_iam_role" "ec2_code_deploy" {
 }
 
 resource "aws_iam_role_policy" "ec2_code_deploy" {
-  name = "ec2_code_deploy_policy"
+  name = "${var.project}-ec2-code-deploy-policy"
   role = aws_iam_role.ec2_code_deploy.id
 
   policy = jsonencode({
@@ -112,6 +112,6 @@ resource "aws_iam_role_policy" "ec2_code_deploy" {
 }
 
 resource "aws_iam_instance_profile" "ec2_code_deploy" {
-  name = "ec2_code_deploy_instance_profile"
+  name = "${var.project}-ec2-code-deploy-instance-profile"
   role = aws_iam_role.ec2_code_deploy.name
 }
