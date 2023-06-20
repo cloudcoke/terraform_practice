@@ -43,8 +43,8 @@ npm install pm2 -g
 # 테스트 파일 다운로드 후 실행
 mkdir /home/ubuntu/www && cd /home/ubuntu/www
 curl -O https://raw.githubusercontent.com/cloudcoke/script/main/react_project_script/server.js
-export HOSTNAME=$(hostname)
-pm2 start server.js --watch
+export HOSTNAME=$(hostname -f)
+pm2 start server.js
 EOF
 
 su - ubuntu -c "bash /home/ubuntu/nodejs.sh"
