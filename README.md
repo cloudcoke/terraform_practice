@@ -4,6 +4,8 @@
 - aws cli (configure가 완료된 상태)
 - route 53에 도메인 등록
 - acm으로 인증서 발급
+- terraform cloud 회원 가입 및 organization 생성
+- terraform login
 
 # 변수 설정
 
