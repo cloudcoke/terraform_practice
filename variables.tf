@@ -1,6 +1,6 @@
 variable "project" {
   description = "project_name"
-  default     = "test"
+  default     = "wallet"
 }
 
 variable "region" {

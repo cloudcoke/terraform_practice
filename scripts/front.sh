@@ -29,3 +29,6 @@ HOSTNAME=$(hostname -f)
 echo "<h1>Hello World from $HOSTNAME</h1>" > /home/ubuntu/www/build/index.html
 
 systemctl restart nginx
+
+chown -R ubuntu: /home/ubuntu
+

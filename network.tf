@@ -62,7 +62,7 @@ resource "aws_route_table" "public_route_table" {
   }
 
   tags = {
-    Name = "public_route_table"
+    Name = "${var.project}-public-route-table"
   }
 }
 
@@ -75,7 +75,7 @@ resource "aws_route_table" "private_route_table" {
   }
 
   tags = {
-    Name = "private_route_table"
+    Name = "${var.project}-private-route-table"
   }
 }
 

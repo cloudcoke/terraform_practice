@@ -33,7 +33,7 @@ resource "aws_lb" "api" {
 
 # 대상 그룹
 resource "aws_lb_target_group" "external" {
-  name     = "${var.project}-lb-target-group-ext"
+  name     = "${var.project}-lb-tg-ext"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.my_vpc.id
@@ -45,12 +45,12 @@ resource "aws_lb_target_group" "external" {
   }
 
   tags = {
-    Name = "${var.project}-lb-target-group-ext"
+    Name = "${var.project}-lb-tg-ext"
   }
 }
 
 resource "aws_lb_target_group" "api" {
-  name     = "${var.project}-lb-target-group-api"
+  name     = "${var.project}-lb-tg-api"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.my_vpc.id
@@ -62,7 +62,7 @@ resource "aws_lb_target_group" "api" {
   }
 
   tags = {
-    Name = "${var.project}-lb-target-group-api"
+    Name = "${var.project}-lb-tg-api"
   }
 }
 
@@ -130,3 +130,84 @@ resource "aws_lb_listener" "api_80" {
     }
   }
 }
+
+# test server
+
+resource "aws_lb_target_group" "test_front" {
+  name     = "${var.project}-lb-tg-test-front"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.my_vpc.id
+
+  health_check {
+    port    = 80
+    path    = "/"
+    matcher = "200"
+  }
+
+  tags = {
+    Name = "${var.project}-lb-tg-test-front"
+  }
+}
+
+resource "aws_lb_listener_rule" "test_front" {
+  listener_arn = aws_lb_listener.external_443.arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.test_front.arn
+  }
+
+  condition {
+    host_header {
+      values = ["front.${var.default_domain}"]
+    }
+  }
+}
+
+resource "aws_lb_target_group_attachment" "test_front" {
+  target_group_arn = aws_lb_target_group.test_front.arn
+  target_id        = aws_instance.test_front.id
+  port             = 80
+}
+
+resource "aws_lb_target_group" "test_back" {
+  name     = "${var.project}-lb-tg-test-back"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.my_vpc.id
+
+  health_check {
+    port    = 80
+    path    = "/health"
+    matcher = "200"
+  }
+
+  tags = {
+    Name = "${var.project}-lb-tg-test-back"
+  }
+}
+
+resource "aws_lb_listener_rule" "test_back" {
+  listener_arn = aws_lb_listener.api_443.arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.test_back.arn
+  }
+
+  condition {
+    host_header {
+      values = ["back.${var.default_domain}"]
+    }
+  }
+}
+
+resource "aws_lb_target_group_attachment" "test_back" {
+  target_group_arn = aws_lb_target_group.test_back.arn
+  target_id        = aws_instance.test_back.id
+  port             = 80
+}
+

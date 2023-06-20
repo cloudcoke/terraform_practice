@@ -1,14 +1,14 @@
 resource "aws_codedeploy_app" "front_code_deploy" {
-  name = "front-code-deploy"
+  name = "${var.project}-front-code-deploy"
 }
 
 resource "aws_codedeploy_app" "back_code_deploy" {
-  name = "back-code-deploy"
+  name = "${var.project}-back-code-deploy"
 }
 
 resource "aws_codedeploy_deployment_group" "front_code_deploy" {
   app_name               = aws_codedeploy_app.front_code_deploy.name
-  deployment_group_name  = "front-code-deploy-group"
+  deployment_group_name  = "${var.project}-front-code-deploy-group"
   deployment_config_name = "CodeDeployDefault.AllAtOnce"
   service_role_arn       = aws_iam_role.code_deploy_role.arn
   autoscaling_groups     = [aws_autoscaling_group.front.name]
@@ -49,14 +49,14 @@ resource "aws_codedeploy_deployment_group" "front_code_deploy" {
     on_failure = continue
 
     environment = {
-      ENV_TYPE = "front-asg"
+      TAG_VALUE = "front-asg"
     }
   }
 }
 
 resource "aws_codedeploy_deployment_group" "back_code_deploy" {
   app_name               = aws_codedeploy_app.back_code_deploy.name
-  deployment_group_name  = "back-code-deploy-group"
+  deployment_group_name  = "${var.project}-back-code-deploy-group"
   deployment_config_name = "CodeDeployDefault.AllAtOnce"
   service_role_arn       = aws_iam_role.code_deploy_role.arn
   autoscaling_groups     = [aws_autoscaling_group.back.name]
@@ -97,7 +97,7 @@ resource "aws_codedeploy_deployment_group" "back_code_deploy" {
     on_failure = continue
 
     environment = {
-      ENV_TYPE = "back-asg"
+      TAG_VALUE = "back-asg"
     }
   }
 }
